@@ -1,29 +1,4 @@
-#' Authors@R: person("Annice", "Najafi", email = "annicenajafi@tamu.edu")
-#' Department of Biomedical Engineering, Texas A&M University, College Station, TX
-#' Summer 2023 - STAR protocol
-#' This script is written to run COMET, pipeline for the inference of EMT trajectories from
-#' timecourse scRNASeq data.
-#' This pipeline is already published and the code has already been made available on Github
-
-library(Matrix)
-library(dplyr)
-library(ggplot2)
-library(tidyverse)
-library(data.table)
-library(tidyr)
-library(reshape2)
-library(Rmagic)
-library(umap)
-library(readxl)
-library(Seurat)
-library(archetypes)
-library(phateR)
-library(dtw)
-library(pracma)
-
-
-
-#' start.comet
+#' Read necessary files and parameters for pipeline to run
 #' This function reads all the necessary files to run this pipeline
 #' @param tables.dir directory with a csv file that had the address
 #' for the data and metadata
@@ -64,7 +39,6 @@ start.comet<-function(tables.dir, input.data.dir, input.files.dir){
 
 
 
-#' run_pipeline
 #' This function runs the data driven pipeline for inferring trajectories
 #' @param data.inputs the input datasheet stored in a csv file in the tables dir
 #' @param tables.dir directory with a csv file that had the address
@@ -77,7 +51,7 @@ start.comet<-function(tables.dir, input.data.dir, input.files.dir){
 #'
 #' @return the inferred trajectories, also saves them within the
 #' COMET_populated_files directory
-#'
+#' @export
 run_pipeline<- function(data.inputs, tables.dir, input.data.dir, input.files.dir, cutoff){
 
   for(k in 1:nrow(data.inputs)){
@@ -224,13 +198,15 @@ run_pipeline<- function(data.inputs, tables.dir, input.data.dir, input.files.dir
 
 
 
-#' KS scoring function was taken from Priyanka's Github and modified
-#'
+
+#' This function perform Kolmogorov Smirnov scoring on data, credit given to
+#' Priyanka Chakraborty as the code was adapted from her work and modified
 #' @param exp.mat gene expression matrix
 #' @param genes genes
 #' @param top200 receives top 200 highly variable genes for scoring
 #'
 #' @return KS score
+#' @export
 KS.label.me <- function(exp.mat, genes, topgenes){
   common.sig <- intersect(EMT.sig[,1],genes)
   EMT.exp.idx <- match(common.sig, genes)
@@ -271,7 +247,7 @@ KS.label.me <- function(exp.mat, genes, topgenes){
 
 
 
-#' generate_pipeline_files
+
 #' This function is to be ran for all cutoffs, purpose is to find the optimal
 #' number of EMT genes to minimize the DTW distance between the flow cytometry
 #' trajectories and data
@@ -284,6 +260,7 @@ KS.label.me <- function(exp.mat, genes, topgenes){
 #' and files to run the pipeline
 #'
 #' @return does not return, saves the files in the COMET_populated_files dir
+#' @export
 generate_pipeline_files <- function(data.inputs, tables.dir, input.data.dir, input.files.dir){
 
   for(cutoff in seq(5, 100, 5)){
@@ -296,13 +273,13 @@ generate_pipeline_files <- function(data.inputs, tables.dir, input.data.dir, inp
 
 
 
-#' calculate_conf_intervals
-#' This function calculates 95% confidence intervals for every sample over 10
+
+#' This function calculates confidence intervals for every sample over 10
 #' runs
 #' @param data.inputs the input datasheet stored in a csv file in the tables dir
 #'
 #' @return nothing, saves results within the Confidence_Interval_Calculations dir
-#'
+#' @export
 calculate_conf_intervals<-function(data.inputs){
   setNames(data.frame(matrix(ncol = 3, nrow = 0)),c("time","variable", "value"))->binded
 
@@ -330,13 +307,14 @@ calculate_conf_intervals<-function(data.inputs){
 
 
 
-#' DTW_calculate
+
 #' This function calculates the DTW distance bewteen the inferred trajectories
 #' for every cutoff and the flow cytometry data
 #' @param data.inputs the input datasheet stored in a csv file in the tables dir
 #' @param MET.range range of time for MET to take place
 #'
 #' @return nothing, saves the matrix in the DTW_Matrix dir
+#' @export
 DTW_calculate <- function(data.inputs,  MET.range){
   for(k in 1:nrow(data.inputs)){
     data.inputs[k,]->data.input
@@ -378,15 +356,13 @@ DTW_calculate <- function(data.inputs,  MET.range){
 }
 
 
-#' Title
+
+#' This function fits optimal CTMC trajectories to timecourse data
+#' @param data.inputs the input datasheet stored in a csv file in the tables dir
+#' @param MET.range range of time for MET to take place
 #'
-#' @param data.inputs
-#' @param MET.range
-#'
-#' @return
+#' @return the final dataframe with the optimal trajectories fitted to data
 #' @export
-#'
-#' @examples
 fit.all.data <- function(data.inputs, MET.range){
   for(k in 1:nrow(data.inputs)){
     data.inputs[k,]->data.input
@@ -396,8 +372,8 @@ fit.all.data <- function(data.inputs, MET.range){
   }
 }
 
-#' final.optimal.cutoff
-#'
+#' Find the optimal cutoff
+#' Finds the best number of highly variable EMT genes
 #' @param data.input input data to use
 #'
 #' @return optimal cutoff of highly variable genes
@@ -411,7 +387,7 @@ find.optimal.cutoff <- function(data.input){
   return(opt.cutoff)
 }
 
-#' fit.CTMC
+
 #' This function optimally fits 3 CTMC models to data (1st phase, 2nd phase,
 #' MET range)
 #' @param data.input input data to use
@@ -419,6 +395,7 @@ find.optimal.cutoff <- function(data.input){
 #' @param opt.cutoff optimal cutoff of highly variable genes
 #'
 #' @return final trajectories
+#' @export
 fit.CTMC <- function(data.input, MET.range, opt.cutoff){
 
   #Read the corresponding data for the optimal cutoff
@@ -543,7 +520,7 @@ fit.CTMC <- function(data.input, MET.range, opt.cutoff){
 
 
 
-#' run.CTMC
+
 #' This function generates trajectories for a CTMC model given parameters
 #' @param alph_fun alpha parameter used in function
 #' @param time.range specific timerange to generate trajectory
@@ -552,6 +529,7 @@ fit.CTMC <- function(data.input, MET.range, opt.cutoff){
 #' @param p0_fun initial state vector
 #'
 #' @return trajectories along with the resulting p vector
+#' @export
 run.CTMC <- function(alph_fun, time.range, M_sc_fun, Mu_sc_fun, p0_fun){
   E_end_fun<-c()
   H_end_fun<-c()
@@ -571,7 +549,7 @@ run.CTMC <- function(alph_fun, time.range, M_sc_fun, Mu_sc_fun, p0_fun){
   return(list(E_end_fun, H_end_fun, M_end_fun, p0_fun))
 }
 
-#' find.min.alpha
+
 #' This function finds the mse_total given a certain alpha
 #' @param alpha parameter alpha
 #' @param E_cad Epithelial percentage, just named E_cad
@@ -584,6 +562,7 @@ run.CTMC <- function(alph_fun, time.range, M_sc_fun, Mu_sc_fun, p0_fun){
 #' @param timepoints total timepoints
 #'
 #' @return mse_total
+#' @export
 find.min.alpha <- function(alpha, E_cad, hybrid, ZEB, M_sc, Mu_sc, eq, ref_eq_day, timepoints){
 
   p0 <- c(E_cad[eq+1], hybrid[eq+1], ZEB[eq+1])
@@ -621,7 +600,7 @@ find.min.alpha <- function(alpha, E_cad, hybrid, ZEB, M_sc, Mu_sc, eq, ref_eq_da
 }
 
 
-#' transition_matrix
+
 #' This function finds the transition matrix given the parameters for the
 #' generator matrix
 #' @param lambda_E Rate of transition from H to E
@@ -631,6 +610,7 @@ find.min.alpha <- function(alpha, E_cad, hybrid, ZEB, M_sc, Mu_sc, eq, ref_eq_da
 #' @param t time
 #'
 #' @return the probability transition matrix
+#' @export
 transition_matrix <- function(lambda_E, lambda_M, mu_E, mu_M, t){
 
   Q <- t(matrix(c(-mu_E, mu_E, 0, lambda_E, -(lambda_E+lambda_M), lambda_M, 0, mu_M, -mu_M), nrow = 3, ncol = 3))
