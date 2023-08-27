@@ -10,7 +10,7 @@
 #' @return nothing, stores necessary parameters for the model in global
 #' variables
 #' @export
-start.comet<-function(tables.dir, input.data.dir, input.files.dir){
+start_pipeline<-function(tables.dir, input.data.dir, input.files.dir){
 
   #Read list of EMT markers from the cancer research paper
   read.csv(paste0(input.files.dir, "EMTGeneListForMLR.csv"))->>EMT.genes
