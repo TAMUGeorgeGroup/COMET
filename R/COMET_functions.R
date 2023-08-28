@@ -377,6 +377,7 @@ fit.all.data <- function(data.inputs, MET.range){
 #' @param data.input input data to use
 #'
 #' @return optimal cutoff of highly variable genes
+#' @export
 find.optimal.cutoff <- function(data.input){
   #Read the DTW matrix
   matmat <- readRDS(paste0("DTW_Matrix/", data.input$Sample, "_DTW_Matrix.Rds"))

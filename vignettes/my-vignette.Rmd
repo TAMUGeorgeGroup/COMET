@@ -1,5 +1,5 @@
 ---
-title: "my-vignette"
+title: "Visualize Pipeline Results"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{my-vignette}
@@ -15,5 +15,176 @@ knitr::opts_chunk$set(
 ```
 
 ```{r setup}
+#STEP I.
+#Load relevant libraries
+library(dplyr)
+library(ggplot2)
+library(tidyverse)
+library(data.table)
+library(tidyr)
+library(reshape2)
+library(Rmagic)
+library(umap)
+library(readxl)
+library(Seurat)
+library(archetypes)
+library(phateR)
+library(dtw)
+library(pracma)
 library(COMET)
+library(grid)
+library(gridExtra)
+library(plotly)
 ```
+
+
+You are supposed to run this vignette after running the pipeline and having the files generated
+```{r}
+main.dir <- "~/Desktop/COMET_STAR_protocol"
+tables.dir <- "Tables/"
+input.data.dir <- "Input_Data/"
+input.files.dir <- "Input_Files/"
+data.inputs <- read.csv(paste0(main.dir, "/", tables.dir, "DataTableTest.csv"), sep=",")
+data.inputs[1,]->data.input
+```
+You can change color scheme to whatever you want, these color schemes get loaded by
+default when you start the COMET pipeline
+```{r}
+ #the color scheme used in the paper
+  annice.emt.color.scheme <<- c('#CDF0EA', '#F7DBF0', '#BEAEE2') #Mesenchymal, Hybrid, Epithelial
+  annice.emt.color.scheme.bold <<- c("#24A19C","#D96098",  "#BEAEE2")
+  color.scheme <<- c("#191935", "#1B1B3A", "#2F2246", "#422951", "#693668", "#e3f6f5", "#bae8e8", "#2c698d")
+
+```
+
+
+Confidence Interval Plots
+```{r}
+populated.files.dir <- "COMET_populated_files/"
+
+for(cutoff in seq(5, 100, 5)){
+    setNames(data.frame(matrix(ncol = 3, nrow = 0)),c("time","variable", "value"))->binded
+  for(k in 1:10){
+  #read.csv(paste0(dir.path, "timecourse_data_", CellLine,"_", i, ".csv"))->data
+    file.path <- paste0(main.dir, "/", populated.files.dir, data.input$Sample,"_",k, "_", cutoff, ".Rds")
+    
+    readRDS(file.path)->data
+    rbind(binded, data)->binded
+  }  
+    ggplot(binded, aes(x=time, y=value, group=variable, color=variable, stroke=1.5), fill=c("#24A19C","#D96098", "#BE79DF"))+ 
+    #ggtitle(bquote(.(CellLine)~ - TGF ~beta))+
+    ggtitle(cutoff)+
+    geom_rect(aes(xmin = -Inf,xmax = 7,ymin = -Inf, ymax = Inf),
+              fill="#DAEAF1", 
+              alpha = .2)+
+    geom_vline(xintercept=7)+
+    stat_summary(geom="ribbon", fun.data=mean_cl_normal, width=0.1, conf.int=0.95, fill = c(rep(annice.emt.color.scheme[3], 8), rep(annice.emt.color.scheme[2], 8), rep(annice.emt.color.scheme[1], 8)))+
+    stat_summary(geom="line", fun.y=mean, linetype="dashed", fill=c("#24A19C","#D96098", "#BE79DF"))+
+    stat_summary(geom="point", fun.y=mean, color=c(rep("#24A19C", 8), rep("#D96098", 8), rep("#BE79DF", 8)), shape=8, size=1)+
+    scale_color_manual(values=(c("#24A19C","#D96098", "#BE79DF")),
+                       labels = c("Epithelial", "Hybrid", "Mesenchymal"))+labs(x="Time (Days)",
+                                                                               y="Cell Fraction", tag = LETTERS[h], color="States", shape=8)+
+    theme(
+      # Remove panel border
+      panel.border=element_blank(),  
+      #plot.border = element_blank(),
+      # Remove panel grid lines
+      panel.background = element_blank(),
+      panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank(),
+      # Add axis line
+      axis.line = element_line(colour = "black"),
+      #legend.position = "none",
+      plot.title = element_text(hjust = 0.5, size=20),
+      axis.text = element_text(size = 15),
+      text = element_text(size=18)
+    )  + guides(color=guide_legend(override.aes=list(fill=NA)))+scale_x_continuous(limits=c(0, 10))->plt
+  
+  
+    nam <- paste("plt.", h, sep = "")
+    assign(nam, plt)
+    print(h)
+    h<-h+1
+}
+
+ggplot() +                      # Draw ggplot2 plot with text only
+  annotate("text",
+           x = 1,
+           y = 1,
+           size = 8,
+           #label = bquote(.(CellLine)~ - TNF)) + 
+           label = data.input$Sample) + 
+  theme_void()+ theme(panel.background = element_rect(fill = '#DAEAF1', colour = 'black'), text = element_text(size=28))->plt
+grid.arrange(plt, plt.1, plt.2, plt.3, plt.4,
+             plt.5,plt.6, plt.7, plt.8, plt.9, plt.10,
+             plt.11, plt.12, plt.13, plt.14, plt.15,
+             plt.16, plt.17, plt.18, plt.19,
+             top =data.input$Sample, nrow = 4)
+```
+
+Draw DTW Heatmap over Cutoffs
+```{r}
+DTW.dir <- "DTW_Matrix"
+dtw_mat <- readRDS(paste0(main.dir, "/", DTW.dir, "/", data.input$Sample, "_DTW_Matrix.Rds"))
+colnames(dtw_mat)<-c("E", "H", "M", "Total")
+plot_ly(z=dtw_mat, type="heatmap",colors = c(color.scheme[1], color.scheme[5], color.scheme[7], color.scheme[8]))%>% layout(title = list(text = paste0(data.input$CellLine," - ", data.input$Factor), y=0.99),
+                                                                                                                           xaxis = list(title = '     E              H              M          Total',zeroline = TRUE, showticklabels = FALSE),
+                                                                                                                           yaxis = list(title = 'Cutoff', showticklabels = FALSE, nticks=29))
+```
+
+
+```{r}
+#To find out about the optimal cutoff, please run the commented command outside notebook
+#optimal.cutoff <- find.optimal.cutoff(data.input)
+optimal.cutoff <- 45
+#Get the final inferred trajectories from data
+conf.dat <- readRDS(paste0(main.dir, "/Confidence_Interval_Calculations/", data.input$Sample,"_", optimal.cutoff, ".Rds"))
+#Get the final fit
+final.df <- readRDS(paste0(main.dir, "/Results/final_df.Rds"))
+
+reshape(
+    conf.dat,
+    idvar = "time",
+    timevar = "variable",
+    direction = "wide"
+)->reshaped_data
+
+ggplot()+
+  geom_line(data=reshaped_data, aes(x=time, y=value.Epithelial), color=annice.emt.color.scheme[3], size=1.5)+
+  geom_point(data=reshaped_data, aes(x=time, y=value.Epithelial), color=annice.emt.color.scheme[3], stroke=3, shape=8)+
+  geom_line(data=final.df, aes(x=time, y=E_final), color=annice.emt.color.scheme.bold[3],size=1.5, linetype="dashed")+
+  geom_line(data=reshaped_data, aes(x=time, y=value.Hybrid),
+color=annice.emt.color.scheme[2], size=1.5)+
+  geom_point(data=reshaped_data, aes(x=time, y=value.Hybrid), color=annice.emt.color.scheme[2], stroke=3, shape=8)+
+  geom_line(data=final.df, aes(x=time, y=H_final), color=annice.emt.color.scheme.bold[2], size=1.5, linetype="dashed")+
+  geom_line(data=reshaped_data, aes(x=time, y=value.Mesenchymal), color=annice.emt.color.scheme[1], size=1.5)+
+  geom_point(data=reshaped_data, aes(x=time, y=value.Mesenchymal), color=annice.emt.color.scheme[1], stroke=3, shape=8)+
+  geom_line(data=final.df, aes(x=time, y=M_final), color=annice.emt.color.scheme.bold[1], size=1.5, linetype="dashed")+
+  ggtitle(data.input$Sample)+
+    geom_rect(aes(xmin = -Inf,xmax = 7,ymin = -Inf, ymax = Inf),
+              fill="#ADC4CE", 
+              alpha = .2)+
+    geom_vline(xintercept=7)+
+  theme(
+      # Remove panel border
+      panel.border=element_blank(),  
+      #plot.border = element_blank(),
+      # Remove panel grid lines
+      panel.background = element_blank(),
+      panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank(),
+      # Add axis line
+      axis.line = element_line(colour = "black"),
+      #legend.position = "none",
+      plot.title = element_text(hjust = 0.5, size=20),
+      axis.text = element_text(size = 15),
+      text = element_text(size=18)
+    )  +labs(y="Cell Fraction", x="Time (Days)", tag="A")
+```
+
+
+
+
+
+
+
