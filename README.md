@@ -25,8 +25,15 @@ library(archetypes)
 library(phateR)
 library(dtw)
 library(pracma)
+library(devtools)
 ```
-Step II. Make sure that you set these three variables to the correct directory names
+Step II. Install the COMET package
+
+```
+devtools::install_github("TAMUGeorgeGroup/COMET")
+```
+
+Step III. Make sure that you set these three variables to the correct directory names
 <ul>
   <li>Tables directory, should store a csv table with three columns, "Sample", "DataPath", and "MetaData" each of these should store the name of the input files (with no space), path to count matrix, and path to metadata respectively.</li>
   <li>Input Data directory, should store the metadata and the count matrix both stored in csv.gz formats, the meta.data should store a column named "Time" and have timepoints stored in numeric values.</li>
@@ -40,7 +47,7 @@ input.files.dir <- "Input_Files/"
 data.inputs <- read.csv(paste0(tables.dir, "DataTableTest.csv"), sep=",")
 ```
 
-Step III. Run the pipeline
+Step IV. Run the pipeline
 
 ```
 COMET::start.comet(tables.dir, input.data.dir, input.files.dir)
@@ -49,3 +56,6 @@ COMET::calculate_conf_intervals(data.inputs)
 COMET::DTW_calculate(data.inputs,  c(7.33, 8, 10))
 fit.all.data(data.inputs, c(7.33, 8, 10)) ->final.result
 ```
+
+Step V. Visualize the results using the vignette notebooks 
+
