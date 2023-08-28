@@ -61,7 +61,7 @@ default when you start the COMET pipeline
 Confidence Interval Plots
 ```{r}
 populated.files.dir <- "COMET_populated_files/"
-
+h<-1
 for(cutoff in seq(5, 100, 5)){
     setNames(data.frame(matrix(ncol = 3, nrow = 0)),c("time","variable", "value"))->binded
   for(k in 1:10){
