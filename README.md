@@ -50,6 +50,7 @@ data.inputs <- read.csv(paste0(tables.dir, "DataTableTest.csv"), sep=",")
 ```
 
 Step IV. Run the pipeline
+For the example dataset, data coming from timepoints 7.33, 8, and 10 came were going through MET. 
 
 ```
 COMET::start.comet(tables.dir, input.data.dir, input.files.dir)
