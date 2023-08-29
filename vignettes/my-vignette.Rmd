@@ -140,8 +140,8 @@ optimal.cutoff <- 45
 #Get the final inferred trajectories from data
 conf.dat <- readRDS(paste0(main.dir, "/Confidence_Interval_Calculations/", data.input$Sample,"_", optimal.cutoff, ".Rds"))
 #Get the final fit
-final.df <- readRDS(paste0(main.dir, "/Results/final_df.Rds"))
-
+final.res <- readRDS(paste0(main.dir, "/Results/final_df.Rds"))
+final.df <- final.res[[1]]
 reshape(
     conf.dat,
     idvar = "time",
@@ -181,7 +181,32 @@ color=annice.emt.color.scheme[2], size=1.5)+
       text = element_text(size=18)
     )  +labs(y="Cell Fraction", x="Time (Days)", tag="A")
 ```
+Plot inter-state transition rates
 
+```{r}
+M  <- matrix(nrow = 3, ncol =3, byrow = TRUE, data = 0)
+A<-M
+M[1,2]<-paste0(final.result[[3]])
+M[2,1]<-paste0(final.result[[2]])
+M[2,3]<-paste0(final.result[[2]])
+M[3,2]<-paste0(final.result[[4]])
+A[1,2]<-paste0(final.result[[2]])
+A[2,1]<-paste0(final.result[[3]])
+A[2,3]<-paste0(final.result[[3]])
+A[3,2]<-paste0(final.result[[4]])
+col   <- M
+col[] <- "red"
+col[1, 2] <- "#BEAEE2"
+col[2, 1] <- col[2, 3] <- "#D96098"
+col[3, 2] <- "#24A19C"
+plotmat(M, pos = c(3), name = c("E", "H", "M"),box.col=rev(annice.emt.color.scheme.bold),
+        #box.size=c(0.05,0.03,0.03,0.05), box.prop = 1,
+        arr.lwd=A,
+        lwd = 1, box.lwd = 2, box.cex = 1, cex.txt = 0.8,
+        arr.lcol = col, arr.col = col, box.type = "ellipse",
+        lend=3)
+
+```
 
 
 

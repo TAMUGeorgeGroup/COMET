@@ -15,7 +15,7 @@ fit.CTMC(data.input, MET.range, opt.cutoff)
 \item{opt.cutoff}{optimal cutoff of highly variable genes}
 }
 \value{
-final trajectories
+final trajectories, lambda_E, mu, and lambda_M respectively
 }
 \description{
 This function optimally fits 3 CTMC models to data (1st phase, 2nd phase,
