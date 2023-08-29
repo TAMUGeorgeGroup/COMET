@@ -395,7 +395,7 @@ find.optimal.cutoff <- function(data.input){
 #' @param MET.range range where MET takes place
 #' @param opt.cutoff optimal cutoff of highly variable genes
 #'
-#' @return final trajectories
+#' @return final trajectories, lambda_E, mu, and lambda_M respectively
 #' @export
 fit.CTMC <- function(data.input, MET.range, opt.cutoff){
 
@@ -492,6 +492,9 @@ fit.CTMC <- function(data.input, MET.range, opt.cutoff){
   lst.f[[4]]->p0
   #MET range Markov chain
   #alpha_rev <- 1
+  trans_lambda_M <- alph*M_sc
+  trans_Mu <- alph*Mu_sc
+  trans_lambda_E <- alph
 
   fminresrev <- pracma::fminsearch(find.min.alpha, x0 = c(1, 0.1),E_cad = E_cad,hybrid =  hybrid,
                                 ZEB = ZEB, M_sc = 1/(ZEB[1]/E_cad[1]), Mu_sc = 1/(hybrid[1]/E_cad[1]), eq = 4,
@@ -517,6 +520,7 @@ fit.CTMC <- function(data.input, MET.range, opt.cutoff){
   time_2 <- seq(max(opt.vals.emt$time), max(MET.range), length.out =length(MET.range)/CTMC.scale)
   time_2[-1]->time_2
   data.frame(time = c(time_0, time_1[-1], time_2), E_final, H_final, M_final)->final.df
+  return(list(final.df, trans_lambda_E, trans_Mu, trans_lambda_M))
 }
 
 
