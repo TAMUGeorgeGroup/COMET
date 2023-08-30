@@ -4,22 +4,22 @@
 #' for the data and metadata
 #' @param input.data.dir this is the directory where the input file
 #' should be saved in
-#' @param input.files.dir this directory has all the necessary params
-#' and files to run the pipeline
 #'
 #' @return nothing, stores necessary parameters for the model in global
 #' variables
 #' @export
-start_pipeline<-function(tables.dir, input.data.dir, input.files.dir){
+start_pipeline<-function(tables.dir, input.data.dir){
 
   #Read list of EMT markers from the cancer research paper
-  read.csv(paste0(input.files.dir, "EMTGeneListForMLR.csv"))->>EMT.genes
+  #read.csv(paste0(input.files.dir, "EMTGeneListForMLR.csv"))->>EMT.genes
+  read.csv(system.file("extdata", "EMTGeneListForMLR.csv", package = "COMET"))->>EMT.genes
   EMT.genes$name->>EMT.genes
 
   #Read EMT signatures for KS method
-  EMT.sig <<- data.frame(readxl::read_excel(paste0(input.files.dir,"EM_gene_signature_cellLine_KS.xlsx"),
-                                  col_names=FALSE))
-
+  #EMT.sig <<- data.frame(readxl::read_excel(paste0(input.files.dir,"EM_gene_signature_cellLine_KS.xlsx"),
+  #                                col_names=FALSE))
+  EMT.sig <<- data.frame(readxl::read_excel(system.file("extdata", "EM_gene_signature_cellLine_KS.xlsx", package = "COMET"),
+                                            col_names=FALSE))
   #Set color scheme
   color.scheme <<- c("#191935", "#1B1B3A", "#2F2246", "#422951", "#693668", "#e3f6f5", "#bae8e8", "#2c698d")
   #the color scheme used in the paper
@@ -27,7 +27,8 @@ start_pipeline<-function(tables.dir, input.data.dir, input.files.dir){
   emt.color.scheme.bold <<- c("#24A19C","#D96098",  "#BEAEE2")
 
   #Rid the flow cytometry data
-  read.csv(paste0(input.files.dir, "markov_flow.csv"))->>flow.dat
+  #read.csv(paste0(input.files.dir, "markov_flow.csv"))->>flow.dat
+  read.csv(system.file("extdata", "markov_flow.csv", package = "COMET"))->>flow.dat
   #Getting rid of the third phase - we are still unsure of.
   flow.dat[1:7,]->>flow.dat
 
@@ -45,14 +46,12 @@ start_pipeline<-function(tables.dir, input.data.dir, input.files.dir){
 #' for the data and metadata
 #' @param input.data.dir this is the directory where the input file
 #' should be saved in
-#' @param input.files.dir this directory has all the necessary params
-#' and files to run the pipeline
 #' @param cutoff of highly variable EMT genes to be considered
 #'
 #' @return the inferred trajectories, also saves them within the
 #' COMET_populated_files directory
 #' @export
-run_pipeline<- function(data.inputs, tables.dir, input.data.dir, input.files.dir, cutoff){
+run_pipeline<- function(data.inputs, tables.dir, input.data.dir, cutoff){
 
   for(k in 1:nrow(data.inputs)){
     for(turn in 1:10){
@@ -256,15 +255,13 @@ KS.label.me <- function(exp.mat, genes, topgenes){
 #' for the data and metadata
 #' @param input.data.dir this is the directory where the input file
 #' should be saved in
-#' @param input.files.dir this directory has all the necessary params
-#' and files to run the pipeline
 #'
 #' @return does not return, saves the files in the COMET_populated_files dir
 #' @export
-generate_pipeline_files <- function(data.inputs, tables.dir, input.data.dir, input.files.dir){
+generate_pipeline_files <- function(data.inputs, tables.dir, input.data.dir){
 
   for(cutoff in seq(5, 100, 5)){
-  run_pipeline(data.inputs, tables.dir, input.data.dir, input.files.dir, cutoff)
+  run_pipeline(data.inputs, tables.dir, input.data.dir, cutoff)
 
   }
 
@@ -518,6 +515,7 @@ fit.CTMC <- function(data.input, MET.range, opt.cutoff){
   time_0 <- seq(0, unique(opt.vals.emt$time)[which.max(opt.vals.emt.H$value)], length.out = unique(opt.vals.emt$time)[which.max(opt.vals.emt.H$value)]/CTMC.scale)
   time_1 <- seq(unique(opt.vals.emt$time)[which.max(opt.vals.emt.H$value)], max(opt.vals.emt$time), length.out = loop_to)
   time_2 <- seq(max(opt.vals.emt$time), max(MET.range), length.out =length(MET.range)/CTMC.scale)
+  #Should add a conditional to take into account when no MET range is considered.
   time_2[-1]->time_2
   data.frame(time = c(time_0, time_1[-1], time_2), E_final, H_final, M_final)->final.df
   return(list(final.df, trans_lambda_E, trans_Mu, trans_lambda_M))
