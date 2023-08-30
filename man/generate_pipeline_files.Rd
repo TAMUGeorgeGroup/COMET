@@ -6,12 +6,7 @@
 number of EMT genes to minimize the DTW distance between the flow cytometry
 trajectories and data}
 \usage{
-generate_pipeline_files(
-  data.inputs,
-  tables.dir,
-  input.data.dir,
-  input.files.dir
-)
+generate_pipeline_files(data.inputs, tables.dir, input.data.dir)
 }
 \arguments{
 \item{data.inputs}{the input datasheet stored in a csv file in the tables dir}
@@ -21,9 +16,6 @@ for the data and metadata}
 
 \item{input.data.dir}{this is the directory where the input file
 should be saved in}
-
-\item{input.files.dir}{this directory has all the necessary params
-and files to run the pipeline}
 }
 \value{
 does not return, saves the files in the COMET_populated_files dir

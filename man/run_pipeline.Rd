@@ -4,7 +4,7 @@
 \alias{run_pipeline}
 \title{This function runs the data driven pipeline for inferring trajectories}
 \usage{
-run_pipeline(data.inputs, tables.dir, input.data.dir, input.files.dir, cutoff)
+run_pipeline(data.inputs, tables.dir, input.data.dir, cutoff)
 }
 \arguments{
 \item{data.inputs}{the input datasheet stored in a csv file in the tables dir}
@@ -14,9 +14,6 @@ for the data and metadata}
 
 \item{input.data.dir}{this is the directory where the input file
 should be saved in}
-
-\item{input.files.dir}{this directory has all the necessary params
-and files to run the pipeline}
 
 \item{cutoff}{of highly variable EMT genes to be considered}
 }

@@ -5,7 +5,7 @@
 \title{Read necessary files and parameters for pipeline to run
 This function reads all the necessary files to run this pipeline}
 \usage{
-start_pipeline(tables.dir, input.data.dir, input.files.dir)
+start_pipeline(tables.dir, input.data.dir)
 }
 \arguments{
 \item{tables.dir}{directory with a csv file that had the address
@@ -13,9 +13,6 @@ for the data and metadata}
 
 \item{input.data.dir}{this is the directory where the input file
 should be saved in}
-
-\item{input.files.dir}{this directory has all the necessary params
-and files to run the pipeline}
 }
 \value{
 nothing, stores necessary parameters for the model in global
