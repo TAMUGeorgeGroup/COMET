@@ -7,7 +7,7 @@ COMET is now publicly available as an R package and is published in Cell iScienc
 <img src="https://github.com/TAMUGeorgeGroup/COMET/assets/62211977/16e1d9a1-bbe7-4138-a9d5-4ba2aab8a35d" alt="model-diagram" width="400" height="550">
 <h2>Guidelines</h2> 
 
-Download <a href="https://drive.google.com/file/d/1JHspm15geKSlaAvaU9fwvZRnnNVOMqPu/view?usp=sharing">this zip file</a> and place it in a directory of your choice, then set your working directory to that path:
+Download <a href="https://zenodo.org/records/10050380">this zip file from Zenodo</a> and place it in a directory of your choice, then set your working directory to that path:
 <br>
 setwd("~/Desktop/COMET_STAR_protocol/")
 <br>
@@ -53,7 +53,7 @@ Step IV. Run the pipeline
 For the example dataset, data coming from timepoints 7.33, 8, and 10 came were going through MET. 
 
 ```
-COMET::start.comet(tables.dir, input.data.dir, input.files.dir)
+COMET::start_pipeline(tables.dir, input.data.dir, input.files.dir)
 COMET::generate_pipeline_files(data.inputs, tables.dir, input.data.dir, input.files.dir)
 COMET::calculate_conf_intervals(data.inputs)
 COMET::DTW_calculate(data.inputs,  c(7.33, 8, 10))
