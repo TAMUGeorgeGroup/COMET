@@ -2,7 +2,7 @@ Package: COMET
 Title: COMET (Context-specific Optimization of EMT Trajectories)
 Version: 0.0.0.9000
 Author: Annice Najafi
-Maintainer: <annicenajafi@tamu.edu>
+Maintainer: [Annice Najafi] <annicenajafi@tamu.edu>
 Description: COMET is a computational framework for inferring EMT trajectories from timecourse single cell RNA sequencing data.
 License: MIT
 Encoding: UTF-8
