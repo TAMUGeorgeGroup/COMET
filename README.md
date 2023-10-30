@@ -53,8 +53,8 @@ Step IV. Run the pipeline
 For the example dataset, data coming from timepoints 7.33, 8, and 10 came were going through MET. 
 
 ```
-COMET::start_pipeline(tables.dir, input.data.dir, input.files.dir)
-COMET::generate_pipeline_files(data.inputs, tables.dir, input.data.dir, input.files.dir)
+COMET::start_pipeline(tables.dir, input.data.dir)
+COMET::generate_pipeline_files(data.inputs, tables.dir, input.data.dir)
 COMET::calculate_conf_intervals(data.inputs)
 COMET::DTW_calculate(data.inputs,  c(7.33, 8, 10))
 fit.all.data(data.inputs, c(7.33, 8, 10)) ->final.result
