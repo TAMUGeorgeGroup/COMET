@@ -27,7 +27,8 @@ start_pipeline<-function(tables.dir, input.data.dir){
   my_package_env$emt.color.scheme.bold <- c("#24A19C","#D96098",  "#BEAEE2")
 
   flow.dat <- read.csv(system.file("extdata", "markov_flow.csv", package = "RCOMET"))
-  my_package_env$flow.dat <- flow.dat[1:7, ]
+  flow.dat[1:7, ] -> flow.dat
+  my_package_env$flow.dat <- flow.dat
 
   my_package_env$inc_num <- 0.04
   my_package_env$CTMC.scale <- 3/20
