@@ -1,4 +1,4 @@
-#' Read necessary files and parameters for pipeline to run
+#' Read necessary files and parameters for pipeline to run COMET
 #' This function reads all the necessary files to run this pipeline
 #' @param tables.dir directory with a csv file that had the address
 #' for the data and metadata
