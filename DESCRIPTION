@@ -1,30 +1,27 @@
-Package: COMET
-Title: COMET (Context-specific Optimization of EMT Trajectories)
-Version: 0.0.0.9000
+Package: RCOMET
+Title: Package for context-specific optimization of EMT trajectories
+Version: 1.2
 Author: Annice Najafi
 Maintainer: [Annice Najafi] <annicenajafi@tamu.edu>
 Description: COMET is a computational framework for inferring EMT trajectories from timecourse single cell RNA sequencing data.
-License: MIT
+License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
+Suggests: knitr, rmarkdown, devtools, diagram, ggplot2, ggpubr, grid,gridExtra,plotly,tidyr,tidyverse,Rmagic
+VignetteBuilder: knitr
 Imports:
-  Rmagic,
   Seurat,
-  phateR,
   umap,
   dtw,
   pracma,
   dplyr,
-  ggplot2,
-  ggpubr,
   readxl,
-  devtools,
-  tidyr,
-  tidyverse,
   reshape2,
-  grid,
-  gridExtra,
-  diagram,
-  plotly,
-  data.table
+  data.table,
+  expm,
+  Rmisc,
+  stats
+Depends:
+  phateR
+

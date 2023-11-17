@@ -1,4 +1,7 @@
-#' Read necessary files and parameters for pipeline to run COMET
+# Create an environment to store global variables
+my_package_env <- new.env()
+
+#' Read necessary files and parameters for pipeline to run
 #' This function reads all the necessary files to run this pipeline
 #' @param tables.dir directory with a csv file that had the address
 #' for the data and metadata
@@ -7,34 +10,27 @@
 #'
 #' @return nothing, stores necessary parameters for the model in global
 #' variables
+#' @importFrom readxl read_excel
+#' @importFrom utils read.csv
 #' @export
 start_pipeline<-function(tables.dir, input.data.dir){
+  # Read files and store in the environment
+  my_package_env$EMT.genes <- read.csv(system.file("extdata", "EMTGeneListForMLR.csv", package = "COMET"))
+  my_package_env$EMT.genes$name <- my_package_env$EMT.genes
 
-  #Read list of EMT markers from the cancer research paper
-  #read.csv(paste0(input.files.dir, "EMTGeneListForMLR.csv"))->>EMT.genes
-  read.csv(system.file("extdata", "EMTGeneListForMLR.csv", package = "COMET"))->>EMT.genes
-  EMT.genes$name->>EMT.genes
+  hold.xl <- readxl::read_excel(system.file("extdata", "EM_gene_signature_cellLine_KS.xlsx", package = "COMET"), col_names = FALSE)
 
-  #Read EMT signatures for KS method
-  #EMT.sig <<- data.frame(readxl::read_excel(paste0(input.files.dir,"EM_gene_signature_cellLine_KS.xlsx"),
-  #                                col_names=FALSE))
-  EMT.sig <<- data.frame(readxl::read_excel(system.file("extdata", "EM_gene_signature_cellLine_KS.xlsx", package = "COMET"),
-                                            col_names=FALSE))
-  #Set color scheme
-  color.scheme <<- c("#191935", "#1B1B3A", "#2F2246", "#422951", "#693668", "#e3f6f5", "#bae8e8", "#2c698d")
-  #the color scheme used in the paper
-  emt.color.scheme <<- c('#CDF0EA', '#F7DBF0', '#BEAEE2') #Mesenchymal, Hybrid, Epithelial
-  emt.color.scheme.bold <<- c("#24A19C","#D96098",  "#BEAEE2")
+  my_package_env$EMT.sig <-data.frame(hold.xl)
 
-  #Rid the flow cytometry data
-  #read.csv(paste0(input.files.dir, "markov_flow.csv"))->>flow.dat
-  read.csv(system.file("extdata", "markov_flow.csv", package = "COMET"))->>flow.dat
-  #Getting rid of the third phase - we are still unsure of.
-  flow.dat[1:7,]->>flow.dat
+  my_package_env$color.scheme <- c("#191935", "#1B1B3A", "#2F2246", "#422951", "#693668", "#e3f6f5", "#bae8e8", "#2c698d")
+  my_package_env$emt.color.scheme <- c('#CDF0EA', '#F7DBF0', '#BEAEE2') # Mesenchymal, Hybrid, Epithelial
+  my_package_env$emt.color.scheme.bold <- c("#24A19C","#D96098",  "#BEAEE2")
 
-  #Params for CTMC model
-  inc_num <<- 0.04
-  CTMC.scale <<- 3/20
+  my_package_env$flow.dat <- read.csv(system.file("extdata", "markov_flow.csv", package = "COMET"))
+  my_package_env$flow.dat[1:7, ] <- my_package_env$flow.dat
+
+  my_package_env$inc_num <- 0.04
+  my_package_env$CTMC.scale <- 3/20
 }
 
 
@@ -50,9 +46,24 @@ start_pipeline<-function(tables.dir, input.data.dir){
 #'
 #' @return the inferred trajectories, also saves them within the
 #' COMET_populated_files directory
+#' @importFrom data.table fread
+#' @importFrom phateR library.size.normalize
+#' @importFrom stats princomp
+#' @importFrom Seurat VariableFeatures
+#' @importFrom reshape2 melt
+#' @importFrom utils write.csv
+#' @importFrom umap umap
+#' @importFrom stats princomp kmeans
+#' @importFrom Rmagic magic
+#' @importFrom utils head
 #' @export
 run_pipeline<- function(data.inputs, tables.dir, input.data.dir, cutoff){
-
+  .<-model.cluster<-NULL
+  .<-cluster<-NULL
+  .<-clust.1.lab<-NULL
+  .<-clust.2.lab<-NULL
+  .<-clust.3.lab<-NULL
+  .<-meta.data.Time<-NULL
   for(k in 1:nrow(data.inputs)){
     for(turn in 1:10){
     data.inputs[k,]->data.input #For demonstration purposes we only read the first file
@@ -79,12 +90,12 @@ run_pipeline<- function(data.inputs, tables.dir, input.data.dir, cutoff){
 
     #Find highly variable genes
     as.data.frame(library.size.normalize(data.filtered.not.norm))->data.df
-    data.df[colnames(data.df) %in% EMT.genes]->data.df
+    data.df[colnames(data.df) %in% my_package_env$EMT.genes]->data.df
 
     #Choose a specific cutoff of highly variable genes
     Seurat::CreateSeuratObject(t(data.df))->seur
     Seurat::FindVariableFeatures(seur, selection.method='vst', nfeatures=200)->seur
-    top.var.genes <- head(Seurat::VariableFeatures(seur), cutoff)
+    top.var.genes <- utils::head(Seurat::VariableFeatures(seur), cutoff)
 
     data_MAGIC <- Rmagic::magic(data.filtered, genes=top.var.genes,
                                 knn=15)
@@ -94,19 +105,19 @@ run_pipeline<- function(data.inputs, tables.dir, input.data.dir, cutoff){
 
 
     for(i in 1:length(timepoints)){
-      meta.data$color[meta.data$Time==timepoints[i]]<-color.scheme[i]
+      meta.data$color[meta.data$Time==timepoints[i]]<-my_package_env$color.scheme[i]
       meta.data$Time[meta.data$Time==timepoints[i]]<-timepoints[i]
     }
 
-    umapped <- umap(data.magic[1:(length(colnames(data.magic))-1)])
+    umapped <- umap::umap(data.magic[1:(length(colnames(data.magic))-1)])
     meta.data$Time->my.colors
 
     for(i in 1:length(timepoints)){
-      my.colors[my.colors==timepoints[i]]<-color.scheme[i]
+      my.colors[my.colors==timepoints[i]]<-my_package_env$color.scheme[i]
     }
     #We are considering only 3 states with 1 hybrid
     states.no <- 3
-    kmeans(umapped$layout, states.no)->model
+    stats::kmeans(umapped$layout, states.no)->model
 
     data.frame(as.data.frame(umapped$layout)$V1, as.data.frame(umapped$layout)$V2, model$cluster)->df.model
 
@@ -122,7 +133,7 @@ run_pipeline<- function(data.inputs, tables.dir, input.data.dir, cutoff){
 
     model$cluster->meta.data$cluster
     data.magic$cluster<-meta.data$cluster
-    top100 <- head(VariableFeatures(seur), 100)
+    top100 <- utils::head(VariableFeatures(seur), 100)
     ####Labeling the clusters with KS test
     data.df$cluster<-data.magic$cluster
 
@@ -202,16 +213,17 @@ run_pipeline<- function(data.inputs, tables.dir, input.data.dir, cutoff){
 #' Priyanka Chakraborty as the code was adapted from her work and modified
 #' @param exp.mat gene expression matrix
 #' @param genes genes
-#' @param top200 receives top 200 highly variable genes for scoring
+#' @param topgenes receives top 200 highly variable genes for scoring
 #'
 #' @return KS score
+#' @importFrom stats ks.test
 #' @export
 KS.label.me <- function(exp.mat, genes, topgenes){
-  common.sig <- intersect(EMT.sig[,1],genes)
+  common.sig <- intersect(my_package_env$EMT.sig[,1],genes)
   EMT.exp.idx <- match(common.sig, genes)
   exp.mat[,EMT.exp.idx]->EMT.exp
-  topgenes[topgenes %in% EMT.sig[EMT.sig$...2=="Mes",][,1]]->Mes.genes
-  topgenes[topgenes %in% EMT.sig[EMT.sig$...2=="Epi",][,1]]->Epi.genes
+  topgenes[topgenes %in% my_package_env$EMT.sig[my_package_env$EMT.sig$...2=="Mes",][,1]]->Mes.genes
+  topgenes[topgenes %in% my_package_env$EMT.sig[my_package_env$EMT.sig$...2=="Epi",][,1]]->Epi.genes
   Epi.idx <- colnames(EMT.exp[colnames(EMT.exp) %in% Epi.genes])
   Mes.idx <- colnames(EMT.exp[colnames(EMT.exp) %in% Mes.genes])
 
@@ -276,6 +288,8 @@ generate_pipeline_files <- function(data.inputs, tables.dir, input.data.dir){
 #' @param data.inputs the input datasheet stored in a csv file in the tables dir
 #'
 #' @return nothing, saves results within the Confidence_Interval_Calculations dir
+#' @importFrom stats setNames
+#' @importFrom utils read.csv
 #' @export
 calculate_conf_intervals<-function(data.inputs){
   setNames(data.frame(matrix(ncol = 3, nrow = 0)),c("time","variable", "value"))->binded
@@ -311,6 +325,7 @@ calculate_conf_intervals<-function(data.inputs){
 #' @param MET.range range of time for MET to take place
 #'
 #' @return nothing, saves the matrix in the DTW_Matrix dir
+#' @importFrom dplyr %>% filter
 #' @export
 DTW_calculate <- function(data.inputs,  MET.range){
   for(k in 1:nrow(data.inputs)){
@@ -321,6 +336,8 @@ DTW_calculate <- function(data.inputs,  MET.range){
   for(cutoff in seq(5, 100, 5)){
 
     df <- readRDS(paste0("Confidence_Interval_Calculations/", data.input$Sample, "_", cutoff, ".Rds"))
+    .<-time<-NULL
+    .<-variable<-NULL
     #Exclude data from MET range
     df %>% filter(!(time %in% MET.range))->df
     #iterate over states and find DTW
@@ -328,7 +345,7 @@ DTW_calculate <- function(data.inputs,  MET.range){
 
       df %>% filter(variable==state)->df.state
 
-      dtw::dtw(df.state$value, flow.dat[state])$distance->dtw.d
+      dtw::dtw(df.state$value, my_package_env$flow.dat[state])$distance->dtw.d
 
       matmat[h, which(unique(df$variable)==state)]<-dtw.d
     }
@@ -393,12 +410,14 @@ find.optimal.cutoff <- function(data.input){
 #' @param opt.cutoff optimal cutoff of highly variable genes
 #'
 #' @return final trajectories, lambda_E, mu, and lambda_M respectively
+#' @importFrom dplyr %>% filter
 #' @export
 fit.CTMC <- function(data.input, MET.range, opt.cutoff){
 
   #Read the corresponding data for the optimal cutoff
   opt.vals <- readRDS(paste0("Confidence_Interval_Calculations/", data.input$Sample, "_", opt.cutoff, ".Rds"))
-
+  .<-time<-NULL
+  .<-variable<-NULL
   #Filter for EMT range
   opt.vals.emt <- opt.vals %>% filter(!(time %in% MET.range))
 
@@ -464,16 +483,16 @@ fit.CTMC <- function(data.input, MET.range, opt.cutoff){
     E_st<-NULL
     H_st<-NULL
     M_st<-NULL
-    loop_to <- length(timepoints)/CTMC.scale
+    loop_to <- length(timepoints)/my_package_env$CTMC.scale
   }else{
-  for(jj in seq(1, ind.first.phase$time/CTMC.scale)){
-    p <- transition_matrix(lambda_E, lambda_M, mu, mu, inc_num*(jj-1));
+  for(jj in seq(1, ind.first.phase$time/my_package_env$CTMC.scale)){
+    p <- transition_matrix(lambda_E, lambda_M, mu, mu, my_package_env$inc_num*(jj-1));
     vect = p0 %*% p
     E_st[jj] <- vect[,1]
     H_st[jj] <- vect[,2]
     M_st[jj] <- vect[,3]
     p0 <- vect
-    loop_to <- (max(timepoints)-ind.first.phase$time)/(CTMC.scale*ind.first.phase$time);
+    loop_to <- (max(timepoints)-ind.first.phase$time)/(my_package_env$CTMC.scale*ind.first.phase$time);
   }
   }
 
@@ -482,7 +501,7 @@ fit.CTMC <- function(data.input, MET.range, opt.cutoff){
   H_f<-c()
   M_f<-c()
 
-  lst.f <- run.CTMC(alph, loop_to*CTMC.scale, 1/M_sc, 1/Mu_sc, p0)
+  lst.f <- run.CTMC(alph, loop_to*my_package_env$CTMC.scale, 1/M_sc, 1/Mu_sc, p0)
   lst.f[[1]]-> E_f
   lst.f[[2]]-> H_f
   lst.f[[3]]-> M_f
@@ -512,9 +531,9 @@ fit.CTMC <- function(data.input, MET.range, opt.cutoff){
   M_final <- c(M_st, M_f[-1], M_end)
 
   #Step II. Fit CTMC
-  time_0 <- seq(0, unique(opt.vals.emt$time)[which.max(opt.vals.emt.H$value)], length.out = unique(opt.vals.emt$time)[which.max(opt.vals.emt.H$value)]/CTMC.scale)
+  time_0 <- seq(0, unique(opt.vals.emt$time)[which.max(opt.vals.emt.H$value)], length.out = unique(opt.vals.emt$time)[which.max(opt.vals.emt.H$value)]/my_package_env$CTMC.scale)
   time_1 <- seq(unique(opt.vals.emt$time)[which.max(opt.vals.emt.H$value)], max(opt.vals.emt$time), length.out = loop_to)
-  time_2 <- seq(max(opt.vals.emt$time), max(MET.range), length.out =length(MET.range)/CTMC.scale)
+  time_2 <- seq(max(opt.vals.emt$time), max(MET.range), length.out =length(MET.range)/my_package_env$CTMC.scale)
   #Should add a conditional to take into account when no MET range is considered.
   time_2[-1]->time_2
   data.frame(time = c(time_0, time_1[-1], time_2), E_final, H_final, M_final)->final.df
@@ -538,11 +557,11 @@ run.CTMC <- function(alph_fun, time.range, M_sc_fun, Mu_sc_fun, p0_fun){
   H_end_fun<-c()
   M_end_fun<-c()
 
-  for (j in seq(1, time.range/CTMC.scale)){
+  for (j in seq(1, time.range/my_package_env$CTMC.scale)){
     lambda_E_fun = alph_fun;
     lambda_M_fun = alph_fun*M_sc_fun;
     mu_fun = alph_fun*Mu_sc_fun;
-    p_fun <- transition_matrix(lambda_E_fun, lambda_M_fun, mu_fun, mu_fun, inc_num*(j-1))
+    p_fun <- transition_matrix(lambda_E_fun, lambda_M_fun, mu_fun, mu_fun, my_package_env$inc_num*(j-1))
     vect_fun = p0_fun %*% p_fun;
     E_end_fun[j] = vect_fun[,1];
     H_end_fun[j] = vect_fun[,2];
@@ -579,7 +598,7 @@ find.min.alpha <- function(alpha, E_cad, hybrid, ZEB, M_sc, Mu_sc, eq, ref_eq_da
     lambda_M <- alpha/M_sc
     mu <- alpha/Mu_sc
 
-    p <- transition_matrix(lambda_E, lambda_M, mu, mu, inc_num*(k-1));
+    p <- transition_matrix(lambda_E, lambda_M, mu, mu, my_package_env$inc_num*(k-1));
     vect = p0 %*% p
     E[k] = vect[,1]
     H[k] = vect[,2]
@@ -613,6 +632,7 @@ find.min.alpha <- function(alpha, E_cad, hybrid, ZEB, M_sc, Mu_sc, eq, ref_eq_da
 #' @param t time
 #'
 #' @return the probability transition matrix
+#' @importFrom expm expm
 #' @export
 transition_matrix <- function(lambda_E, lambda_M, mu_E, mu_M, t){
 

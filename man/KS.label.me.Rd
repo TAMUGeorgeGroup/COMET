@@ -12,7 +12,7 @@ KS.label.me(exp.mat, genes, topgenes)
 
 \item{genes}{genes}
 
-\item{top200}{receives top 200 highly variable genes for scoring}
+\item{topgenes}{receives top 200 highly variable genes for scoring}
 }
 \value{
 KS score
