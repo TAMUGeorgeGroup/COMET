@@ -15,8 +15,8 @@ my_package_env <- new.env()
 #' @export
 start_pipeline<-function(tables.dir, input.data.dir){
   # Read files and store in the environment
-  my_package_env$EMT.genes <- read.csv(system.file("extdata", "EMTGeneListForMLR.csv", package = "COMET"))
-  my_package_env$EMT.genes$name <- my_package_env$EMT.genes
+  EMT.genes <- read.csv(system.file("extdata", "EMTGeneListForMLR.csv", package = "COMET"))
+  my_package_env$EMT.genes <- EMT.genes$name
 
   hold.xl <- readxl::read_excel(system.file("extdata", "EM_gene_signature_cellLine_KS.xlsx", package = "COMET"), col_names = FALSE)
 
@@ -26,8 +26,8 @@ start_pipeline<-function(tables.dir, input.data.dir){
   my_package_env$emt.color.scheme <- c('#CDF0EA', '#F7DBF0', '#BEAEE2') # Mesenchymal, Hybrid, Epithelial
   my_package_env$emt.color.scheme.bold <- c("#24A19C","#D96098",  "#BEAEE2")
 
-  my_package_env$flow.dat <- read.csv(system.file("extdata", "markov_flow.csv", package = "COMET"))
-  my_package_env$flow.dat[1:7, ] <- my_package_env$flow.dat
+  flow.dat <- read.csv(system.file("extdata", "markov_flow.csv", package = "COMET"))
+  my_package_env$flow.dat <- flow.dat[1:7, ]
 
   my_package_env$inc_num <- 0.04
   my_package_env$CTMC.scale <- 3/20
