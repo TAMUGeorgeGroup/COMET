@@ -2,7 +2,7 @@
 % Please edit documentation in R/COMET_functions.R
 \name{start_pipeline}
 \alias{start_pipeline}
-\title{Read necessary files and parameters for pipeline to run
+\title{Read necessary files and parameters for pipeline to run COMET
 This function reads all the necessary files to run this pipeline}
 \usage{
 start_pipeline(tables.dir, input.data.dir)
@@ -19,6 +19,6 @@ nothing, stores necessary parameters for the model in global
 variables
 }
 \description{
-Read necessary files and parameters for pipeline to run
+Read necessary files and parameters for pipeline to run COMET
 This function reads all the necessary files to run this pipeline
 }
