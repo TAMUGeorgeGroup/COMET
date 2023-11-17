@@ -346,7 +346,7 @@ DTW_calculate <- function(data.inputs,  MET.range){
 
       df %>% filter(variable==state)->df.state
 
-      dtw::dtw(df.state$value, my_package_env$flow.dat[1:7,state])$distance->dtw.d
+      dtw::dtw(df.state$value, my_package_env$flow.dat[state])$distance->dtw.d
 
       matmat[h, which(unique(df$variable)==state)]<-dtw.d
     }
