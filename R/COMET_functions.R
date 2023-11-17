@@ -29,7 +29,6 @@ start_pipeline<-function(tables.dir, input.data.dir){
   flow.dat <- read.csv(system.file("extdata", "markov_flow.csv", package = "RCOMET"))
   #flow.dat.new <- as.data.frame(matrix(0, ncol = 3, nrow = 7))
   my_package_env$flow.dat <- flow.dat
-  my_package_env$flow.dat <- flow.dat.new
   my_package_env$inc_num <- 0.04
   my_package_env$CTMC.scale <- 3/20
 }
